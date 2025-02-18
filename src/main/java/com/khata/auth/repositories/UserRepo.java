@@ -1,6 +1,8 @@
 package com.khata.auth.repositories;
 
 import com.khata.auth.entity.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -11,5 +13,5 @@ public interface UserRepo extends JpaRepository<User, Integer> {
     Optional<User> findByEmail(String email);
 
     // Search users base on name (full name)
-    List<User> finByFullNameContaining(String name);
+    Page<User> findByFullNameContainingIgnoreCase(String name, Pageable pageable);
 }

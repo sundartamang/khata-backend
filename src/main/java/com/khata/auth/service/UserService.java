@@ -5,8 +5,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface UserService {
-    UserDTO registerUser(UserDTO userDTO);
-
     UserDTO createUser(UserDTO userDTO);
 
     UserDTO updateUser(UserDTO userDTO, Integer userId);
