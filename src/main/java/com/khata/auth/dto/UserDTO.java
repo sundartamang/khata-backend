@@ -1,5 +1,7 @@
 package com.khata.auth.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.khata.auth.entity.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -33,4 +35,19 @@ public class UserDTO {
     private Role role = Role.USER;
 
     private boolean isVerified;
+
+    @JsonIgnore
+    public Integer getId(){
+        return this.id;
+    }
+
+    @JsonIgnore
+    public String getPassword() {
+        return this.password;
+    }
+
+    @JsonProperty
+    public void setPassword(String password) {
+        this.password=password;
+    }
 }
