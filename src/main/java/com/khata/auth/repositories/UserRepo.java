@@ -11,6 +11,6 @@ public interface UserRepo extends JpaRepository<User, Integer> {
     // check if email is already taken
     Optional<User> findByEmail(String email);
 
-    // Search users base on name (full name)
+    // search users base on name (full name)
     Page<User> findByFullNameContainingIgnoreCase(String name, Pageable pageable);
 }
