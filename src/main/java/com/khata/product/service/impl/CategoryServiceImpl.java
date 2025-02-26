@@ -5,19 +5,18 @@ import com.khata.product.dto.CategoryDTO;
 import com.khata.product.entity.Category;
 import com.khata.product.repositories.CategoryRepo;
 import com.khata.product.service.CategoryService;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepo categoryRepo;
     private final ModelMapper modelMapper;
-    private static  final Logger logger = LoggerFactory.getLogger(CategoryServiceImpl.class);
 
     public CategoryServiceImpl(CategoryRepo categoryRepo, ModelMapper modelMapper) {
         this.categoryRepo = categoryRepo;
@@ -28,7 +27,7 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryDTO createCategory(CategoryDTO categoryDTO) {
         Category category = this.modelMapper.map(categoryDTO, Category.class);
         Category savedCategory = this.categoryRepo.save(category);
-        logger.info("Category created with title: {}", category.getTitle());
+        log.info("Category created with title: {}", category.getTitle());
         return this.modelMapper.map(savedCategory, CategoryDTO.class);
     }
 
@@ -38,7 +37,7 @@ public class CategoryServiceImpl implements CategoryService {
                 () -> new ResourceNotFoundException("Category", "id", categoryId));
         category.setTitle(categoryDTO.getTitle());
         Category updatedCategory = this.categoryRepo.save(category);
-        logger.info("Category updated with ID: {}", categoryId);
+        log.info("Category updated with ID: {}", categoryId);
         return this.modelMapper.map(updatedCategory, CategoryDTO.class);
     }
 
@@ -59,7 +58,7 @@ public class CategoryServiceImpl implements CategoryService {
     public void deleteCategory(Integer categoryId) {
         Category category = this.categoryRepo.findById(categoryId).orElseThrow(
                 () -> new ResourceNotFoundException("Category", "id", categoryId));
-        logger.info("Category deleted with ID: {}", categoryId);
+        log.info("Category deleted with ID: {}", categoryId);
         this.categoryRepo.delete(category);
     }
 }

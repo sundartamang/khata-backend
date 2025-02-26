@@ -8,21 +8,20 @@ import com.khata.auth.service.UserService;
 import com.khata.exceptions.ResourceNotFoundException;
 import com.khata.utils.AppConstants;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
 
     private final UserRepo userRepo;
     private final ModelMapper modelMapper;
     private final PasswordEncoder encoder;
-    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
     public UserServiceImpl(UserRepo userRepo, ModelMapper modelMapper, PasswordEncoder encoder) {
         this.userRepo = userRepo;
@@ -37,7 +36,7 @@ public class UserServiceImpl implements UserService {
         User user = convertToEntity(userDTO);
         user.setPassword(encodePassword(userDTO.getPassword()));
         User savedUser = this.userRepo.save(user);
-        logger.info("User created with email: {}", userDTO.getEmail());
+        log.info("User created with email: {}", userDTO.getEmail());
         return convertDTO(savedUser);
     }
 
@@ -52,7 +51,7 @@ public class UserServiceImpl implements UserService {
             user.setPassword(encodePassword(userDTO.getPassword()));
         }
         User updateUser = this.userRepo.save(user);
-        logger.info("User updated with ID: {}", userId);
+        log.info("User updated with ID: {}", userId);
         return convertDTO(updateUser);
     }
 
@@ -80,7 +79,7 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(Integer userId) {
         User user = this.userRepo.findById(userId).orElseThrow(
                 ()-> new ResourceNotFoundException("User", "id", userId));
-        logger.info("User deleted with ID: {}", userId);
+        log.info("User deleted with ID: {}", userId);
         this.userRepo.delete(user);
     }
 

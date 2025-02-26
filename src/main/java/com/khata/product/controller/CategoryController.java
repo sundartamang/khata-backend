@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/product/category/")
+@RequestMapping("/api/product/category/")
 public class CategoryController {
 
     private final CategoryService categoryService;
