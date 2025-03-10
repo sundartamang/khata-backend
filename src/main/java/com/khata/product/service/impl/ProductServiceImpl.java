@@ -2,7 +2,6 @@ package com.khata.product.service.impl;
 
 import com.khata.exceptions.ResourceNotFoundException;
 import com.khata.product.dto.ProductDTO;
-import com.khata.product.entity.Category;
 import com.khata.product.entity.Product;
 import com.khata.product.repositories.ProductRepo;
 import com.khata.product.service.ProductService;
