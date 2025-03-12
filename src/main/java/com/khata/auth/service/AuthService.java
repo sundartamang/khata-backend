@@ -6,6 +6,7 @@ import com.khata.auth.payload.JwtAuthRequest;
 import com.khata.auth.payload.JwtAuthResponse;
 import com.khata.auth.repositories.UserRepo;
 import com.khata.exceptions.ApiException;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -15,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 public class AuthService {
 
     private final AuthenticationManager authenticationManager;
@@ -23,6 +25,15 @@ public class AuthService {
     private final UserRepo userRepo;
     private final ModelMapper modelMapper;
 
+    /**
+     * Constructs the AuthService with necessary dependencies.
+     *
+     * @param authenticationManager The authentication manager for authenticating users.
+     * @param userDetailsService    The service to load user details for authentication.
+     * @param jwtTokenService       The service for generating JWT tokens.
+     * @param userRepo              The repository to interact with the User entity.
+     * @param modelMapper           The model mapper to convert between entities and DTOs.
+     */
     public AuthService(
             AuthenticationManager authenticationManager,
             UserDetailsService userDetailsService,
@@ -36,6 +47,13 @@ public class AuthService {
         this.modelMapper = modelMapper;
     }
 
+    /**
+     * Authenticates the user credentials and generates a JWT token if successful.
+     *
+     * @param jwtAuthRequest The request containing the user's username and password.
+     * @return A JWT authentication response containing the token and user details.
+     * @throws ApiException If authentication fails or if the user is not found.
+     */
     public JwtAuthResponse authenticateUserAndGenerateToken(JwtAuthRequest jwtAuthRequest) {
         authenticateUserCredentials(jwtAuthRequest.getUsername(), jwtAuthRequest.getPassword());
 
@@ -46,10 +64,19 @@ public class AuthService {
         return new JwtAuthResponse(token, userDTO);
     }
 
+    /**
+     * Authenticates the user's credentials using the provided username and password.
+     *
+     * @param username The username of the user to authenticate.
+     * @param password The password of the user to authenticate.
+     * @throws ApiException If the credentials are invalid.
+     */
     private void authenticateUserCredentials(String username, String password) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
+            log.info("User {} authenticated successfully", username);
         } catch (BadCredentialsException e) {
+            log.error("Invalid authentication attempt for user {}", username);
             throw new ApiException("Invalid username or password");
         }
     }

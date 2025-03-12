@@ -23,6 +23,11 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * JwtAuthenticationFilter is a custom filter that processes JWT authentication tokens in HTTP requests.
+ * It extracts the token from the request, validates it, and sets the authentication context for the user if valid.
+ * This filter is invoked on each request to ensure that the user is authenticated before accessing secured resources.
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -35,6 +40,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
+    /**
+     * This method intercepts the request, extracts the JWT token, validates it, and sets the authentication
+     * context if the token is valid.
+     *
+     * @param request the HTTP request
+     * @param response the HTTP response
+     * @param filterChain the filter chain that allows the request to proceed
+     * @throws ServletException if the request could not be processed
+     * @throws IOException if an I/O error occurs during the request processing
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -48,6 +63,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
+    /**
+     * Extracts the JWT token from the Authorization header of the request.
+     *
+     * @param request the HTTP request
+     * @return the extracted JWT token, or null if no token is found
+     */
     private String extractToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -56,6 +77,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 
+    /**
+     * Extracts the username from the JWT token.
+     *
+     * @param token the JWT token
+     * @return the username extracted from the token, or null if the token is invalid or expired
+     */
     private String extractUsernameFromToken(String token) {
         try {
             return token != null ? jwtTokenService.getUsernameFromToken(token) : null;
@@ -69,6 +96,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 
+    /**
+     * Sets the authentication context if the JWT token is valid.
+     * Loads user details, validates the token, and creates an authentication token
+     * to set in the SecurityContextHolder.
+     *
+     * @param username the username extracted from the token
+     * @param token the JWT token
+     * @param request the HTTP request
+     */
     private void setAuthentication(String username, String token, HttpServletRequest request) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 

@@ -1,7 +1,9 @@
 package com.khata.party.dto;
 
+import com.khata.party.entity.enums.PartyType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +12,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class PartyTypeDTO {
+public class PartyDTO {
     private Integer id;
 
     @NotBlank(message = "Name cannot be blank.")
@@ -33,4 +35,7 @@ public class PartyTypeDTO {
     @Size(min = 7, max = 100, message = "Business name must be between 7 and 100 characters.")
     private String partyBusinessName;
 
+    @NotNull(message = "Party type cannot be null")
+    @Size(message = "Party type must be less than 10 characters.")
+    private PartyType partyType;
 }

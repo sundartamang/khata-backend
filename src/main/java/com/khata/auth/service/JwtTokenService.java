@@ -27,6 +27,10 @@ public class JwtTokenService {
     // Securely generate a secret key (recommend external configuration for production)
     private String secretKey = "";
 
+    /**
+     * Constructor to initialize the JwtTokenService and generate a secret key using HmacSHA256.
+     * @throws RuntimeException if the key generation fails.
+     */
     public JwtTokenService(){
         try{
             KeyGenerator keyGen = KeyGenerator.getInstance("HmacSHA256");
@@ -37,28 +41,56 @@ public class JwtTokenService {
         }
     }
 
-    // Retrieve username from JWT token
+    /**
+     * Retrieves the username from the JWT token.
+     *
+     * @param token The JWT token from which the username is extracted.
+     * @return The username stored in the token.
+     */
     public String getUsernameFromToken(String token) {
         return getClaimFromToken(token, Claims::getSubject);
     }
 
-    //get roles from token
+    /**
+     * Retrieves the roles from the JWT token.
+     *
+     * @param token The JWT token from which roles are extracted.
+     * @return A list of roles stored in the token.
+     */
     public List<String> getRolesFromToken(String token) {
         Claims claims = getAllClaimsFromToken(token);
         return claims.get("roles", List.class);
     }
 
-    // Retrieve expiration date from JWT token
+    /**
+     * Retrieves the expiration date from the JWT token.
+     *
+     * @param token The JWT token from which the expiration date is extracted.
+     * @return The expiration date of the token.
+     */
     public Date getExpirationDateFromToken(String token) {
         return getClaimFromToken(token, Claims::getExpiration);
     }
 
+    /**
+     * Extracts a specific claim from the JWT token.
+     *
+     * @param token The JWT token from which the claim is extracted.
+     * @param claimsResolver The function used to resolve and extract the claim.
+     * @param <T> The type of the claim.
+     * @return The extracted claim.
+     */
     public <T> T getClaimFromToken(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = getAllClaimsFromToken(token);
         return claimsResolver.apply(claims);
     }
 
-    // Generate token for user
+    /**
+     * Generates a JWT token for the given user details.
+     *
+     * @param userDetails The user details to include in the token.
+     * @return The generated JWT token.
+     */
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
         Collection<? extends GrantedAuthority> roles = userDetails.getAuthorities();
@@ -66,13 +98,25 @@ public class JwtTokenService {
         return buildToken(claims, userDetails.getUsername());
     }
 
-    // Validate token
+    /**
+     * Validates the JWT token.
+     *
+     * @param token The JWT token to validate.
+     * @param userDetails The user details to validate the token against.
+     * @return True if the token is valid, false otherwise.
+     */
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = getUsernameFromToken(token);
         return (username.equals(userDetails.getUsername()) && !hasTokenExpired(token));
     }
 
-    // Generate token logic
+    /**
+     * Builds the JWT token using the provided claims and subject.
+     *
+     * @param claims The claims to include in the token.
+     * @param subject The subject (usually the username) to associate with the token.
+     * @return The built JWT token.
+     */
     private String buildToken(Map<String, Object> claims, String subject) {
         return Jwts.builder()
                 .claims(claims)
@@ -83,7 +127,12 @@ public class JwtTokenService {
                 .compact();
     }
 
-    // Retrieve any information from token using the secret key
+    /**
+     * Retrieves all claims from the JWT token.
+     *
+     * @param token The JWT token to extract claims from.
+     * @return The claims extracted from the token.
+     */
     private Claims getAllClaimsFromToken(String token) {
         return Jwts.parser()
                 .verifyWith(decodeSecretKey())
@@ -92,12 +141,22 @@ public class JwtTokenService {
                 .getPayload();
     }
 
-    // Check if the token has expired
+    /**
+     * Checks if the JWT token has expired.
+     *
+     * @param token The JWT token to check.
+     * @return True if the token has expired, false otherwise.
+     */
     private Boolean hasTokenExpired(String token) {
         final Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
     }
 
+    /**
+     * Decodes the secret key from its base64 encoded form.
+     *
+     * @return The decoded secret key.
+     */
     private SecretKey decodeSecretKey(){
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);

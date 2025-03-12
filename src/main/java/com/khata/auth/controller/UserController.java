@@ -50,7 +50,7 @@ public class UserController {
         return ResponseEntity.ok(new ApiResponse("User deleted successfully", true));
     }
 
-    @GetMapping("/search/{userId}")
+    @GetMapping("/search")
     public ResponseEntity<Page<UserDTO>> searchUserByFullName(@RequestParam String keyword, Pageable pageable){
         Page<UserDTO> userDTOPage = this.userService.searchUserByName(keyword, pageable);
         return ResponseEntity.ok(userDTOPage);
