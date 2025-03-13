@@ -4,6 +4,8 @@ import com.khata.auth.dto.UserDTO;
 import com.khata.auth.service.UserService;
 import com.khata.payload.ApiResponse;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -11,48 +13,47 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/users/")
+@RequestMapping("/api/users")
+@AllArgsConstructor
 public class UserController {
 
     private final UserService userService;
 
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
-
-    @PostMapping("/")
-    public ResponseEntity<UserDTO> createUser(@Valid @RequestBody UserDTO userDTO){
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<ApiResponse<UserDTO>> createUser(@Valid @RequestBody UserDTO userDTO){
         UserDTO user = this.userService.createUser(userDTO);
-        return new ResponseEntity<UserDTO>(user, HttpStatus.CREATED);
+        ApiResponse<UserDTO> response = new ApiResponse<>(user, HttpStatus.CREATED.value(), "User Created Sucessfully");
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/list")
-    public ResponseEntity<Page<UserDTO>> getUsers(Pageable pageable){
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<UserDTO>>> getUsers(Pageable pageable){
         Page<UserDTO> userDTOPage = this.userService.getUsers(pageable);
-        return ResponseEntity.ok(userDTOPage);
+        return ResponseEntity.ok(new ApiResponse<>(userDTOPage, HttpStatus.OK.value()));
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<UserDTO> updateUser(@Valid @RequestBody UserDTO userDTO, @PathVariable Integer userId){
+    public ResponseEntity<ApiResponse<UserDTO>> updateUser(@Valid @RequestBody UserDTO userDTO, @PathVariable Integer userId){
         UserDTO updatedUser = this.userService.updateUser(userDTO, userId);
-        return ResponseEntity.ok(updatedUser);
+        return ResponseEntity.ok(new ApiResponse<>(updatedUser, HttpStatus.OK.value()));
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable Integer userId){
+    public ResponseEntity<ApiResponse<UserDTO>> getUserById(@PathVariable Integer userId){
         UserDTO userDTO = this.userService.getUserById(userId);
-        return ResponseEntity.ok(userDTO);
+        return ResponseEntity.ok(new ApiResponse<>(userDTO, HttpStatus.OK.value()));
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<ApiResponse> deleteUser(@PathVariable Integer userId){
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable Integer userId){
         this.userService.deleteUser(userId);
-        return ResponseEntity.ok(new ApiResponse("User deleted successfully", true));
+        return ResponseEntity.ok(new ApiResponse<>(null, HttpStatus.OK.value(), "User Deleted Successfully"));
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Page<UserDTO>> searchUserByFullName(@RequestParam String keyword, Pageable pageable){
+    public ResponseEntity<ApiResponse<Page<UserDTO>>> searchUserByFullName(@RequestParam String keyword, Pageable pageable){
         Page<UserDTO> userDTOPage = this.userService.searchUserByName(keyword, pageable);
-        return ResponseEntity.ok(userDTOPage);
+        return ResponseEntity.ok(new ApiResponse<>(userDTOPage, HttpStatus.OK.value()));
     }
 }

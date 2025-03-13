@@ -4,6 +4,8 @@ import com.khata.payload.ApiResponse;
 import com.khata.product.dto.CategoryDTO;
 import com.khata.product.service.CategoryService;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -11,44 +13,45 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/product/category/")
+@RequestMapping("/api/product/category")
+@RequiredArgsConstructor
 public class CategoryController {
 
     private final CategoryService categoryService;
 
-    public CategoryController(CategoryService categoryService) {
-        this.categoryService = categoryService;
-    }
-
-    @PostMapping("/")
-    public ResponseEntity<CategoryDTO> createCategory(@Valid @RequestBody CategoryDTO categoryDTO){
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<ApiResponse<CategoryDTO>> createCategory(@Valid @RequestBody CategoryDTO categoryDTO) {
         CategoryDTO category = this.categoryService.createCategory(categoryDTO);
-        return new ResponseEntity<CategoryDTO>(category, HttpStatus.CREATED);
+        ApiResponse<CategoryDTO> response = new ApiResponse<>(
+            category, HttpStatus.CREATED.value(), "Category Created successfully");
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/list")
-    public ResponseEntity<Page<CategoryDTO>> getCategories(Pageable pageable){
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<CategoryDTO>>> getCategories(Pageable pageable) {
         Page<CategoryDTO> categoryDTOSPage = this.categoryService.getCategories(pageable);
-        return ResponseEntity.ok(categoryDTOSPage);
+        return ResponseEntity.ok(new ApiResponse<>(categoryDTOSPage, HttpStatus.OK.value()));
     }
 
     @PutMapping("/{categoryId}")
-    public ResponseEntity<CategoryDTO> updateCategory(
-            @Valid @RequestBody CategoryDTO categoryDTO,
-            @PathVariable Integer categoryId){
+    public ResponseEntity<ApiResponse<CategoryDTO>> updateCategory(@Valid @RequestBody CategoryDTO categoryDTO, @PathVariable Integer categoryId) {
         CategoryDTO updatedCategory = this.categoryService.updateCategory(categoryDTO, categoryId);
-        return ResponseEntity.ok(updatedCategory);
+        ApiResponse<CategoryDTO> response = new ApiResponse<>(
+            updatedCategory, HttpStatus.OK.value(), "Category Updated successfully");
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{categoryId}")
-    public ResponseEntity<CategoryDTO> getCategoryDetails(@PathVariable Integer categoryId){
+    public ResponseEntity<ApiResponse<CategoryDTO>> getCategoryDetails(@PathVariable Integer categoryId) {
         CategoryDTO categoryDTO = this.categoryService.getCategoryById(categoryId);
-        return ResponseEntity.ok(categoryDTO);
+        return ResponseEntity.ok(new ApiResponse<>(categoryDTO, HttpStatus.OK.value()));
     }
 
     @DeleteMapping("/{categoryId}")
-    public ResponseEntity<ApiResponse> deleteCategory(@PathVariable Integer categoryId){
+    public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Integer categoryId) {
         this.categoryService.deleteCategory(categoryId);
-        return ResponseEntity.ok(new ApiResponse("Category deleted successfully", true));
+        ApiResponse<Void> response = new ApiResponse<>(null, HttpStatus.OK.value(),"Category Deleted successfully");
+        return ResponseEntity.ok(response);
     }
 }
