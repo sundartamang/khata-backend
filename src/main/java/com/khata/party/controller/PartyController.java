@@ -3,6 +3,8 @@ package com.khata.party.controller;
 import com.khata.party.dto.PartyDTO;
 import com.khata.party.service.PartyService;
 import com.khata.payload.ApiResponse;
+import com.khata.payload.PaginationResponse;
+import com.khata.utils.PaginationUtil;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 
@@ -28,9 +30,13 @@ public class PartyController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<PartyDTO>>> getPartyList(Pageable pageable){
+    public ResponseEntity<ApiResponse<PaginationResponse<PartyDTO>>> getPartyList(Pageable pageable) {
         Page<PartyDTO> partyDTOPage = this.partyService.getParties(pageable);
-        return ResponseEntity.ok(new ApiResponse<>(partyDTOPage, HttpStatus.OK.value()));
+
+        PaginationResponse<PartyDTO> paginationPayload = PaginationUtil.buildPaginationResponse(partyDTOPage);
+
+        ApiResponse<PaginationResponse<PartyDTO>> response = new ApiResponse<>(paginationPayload, HttpStatus.OK.value());
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/{partyId}")
@@ -47,9 +53,13 @@ public class PartyController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<ApiResponse<Page<PartyDTO>>> searchPartyByName(@RequestParam String keyword, Pageable pageable){
+    public ResponseEntity<ApiResponse<PaginationResponse<PartyDTO>>> searchPartyByName(@RequestParam String keyword, Pageable pageable){
         Page<PartyDTO> partyDTOPage = this.partyService.searchPartyByName(keyword, pageable);
-        return ResponseEntity.ok(new ApiResponse<>(partyDTOPage, HttpStatus.OK.value()));
+
+        PaginationResponse<PartyDTO> paginationPayload = PaginationUtil.buildPaginationResponse(partyDTOPage);
+
+        ApiResponse<PaginationResponse<PartyDTO>> response = new ApiResponse<>(paginationPayload, HttpStatus.OK.value());
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{partyId}")

@@ -23,7 +23,7 @@ public class UserController {
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<ApiResponse<UserDTO>> createUser(@Valid @RequestBody UserDTO userDTO){
         UserDTO user = this.userService.createUser(userDTO);
-        ApiResponse<UserDTO> response = new ApiResponse<>(user, HttpStatus.CREATED.value(), "User Created Sucessfully");
+        ApiResponse<UserDTO> response = new ApiResponse<>(user, HttpStatus.CREATED.value(), "User Created Successfully");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

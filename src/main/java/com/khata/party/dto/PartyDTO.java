@@ -36,6 +36,5 @@ public class PartyDTO {
     private String partyBusinessName;
 
     @NotNull(message = "Party type cannot be null")
-    @Size(message = "Party type must be less than 10 characters.")
     private PartyType partyType;
 }

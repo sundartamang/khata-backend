@@ -1,7 +1,12 @@
 package com.khata.config;
 
 import com.khata.auth.service.JwtTokenService;
+import com.khata.exceptions.JwtTokenException;
+import com.khata.payload.ApiResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -18,7 +23,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,6 +33,7 @@ import java.util.stream.Collectors;
  * This filter is invoked on each request to ensure that the user is authenticated before accessing secured resources.
  */
 @Component
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenService jwtTokenService;
@@ -53,14 +58,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        String token = extractToken(request);
-        String username = extractUsernameFromToken(token);
+        try {
+            String token = extractToken(request);
+            if (token != null) {
+                String username = jwtTokenService.getUsernameFromToken(token);
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            setAuthentication(username, token, request);
+                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    setAuthentication(username, token, request);
+                }
+            }
+            filterChain.doFilter(request, response);
+
+        } catch (ExpiredJwtException | MalformedJwtException | io.jsonwebtoken.SignatureException  | IllegalArgumentException ex) {
+//            throw new JwtTokenException(ex.getMessage());
+
+            sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Invalid JWT token");
         }
-
-        filterChain.doFilter(request, response);
     }
 
     /**
@@ -73,25 +86,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             return authHeader.substring(7);
-        }
-        return null;
-    }
-
-    /**
-     * Extracts the username from the JWT token.
-     *
-     * @param token the JWT token
-     * @return the username extracted from the token, or null if the token is invalid or expired
-     */
-    private String extractUsernameFromToken(String token) {
-        try {
-            return token != null ? jwtTokenService.getUsernameFromToken(token) : null;
-        } catch (IllegalArgumentException e) {
-            System.out.println("Unable to get JWT token");
-        } catch (ExpiredJwtException e) {
-            System.out.println("JWT token has expired");
-        } catch (MalformedJwtException e) {
-            System.out.println("Invalid JWT token");
         }
         return null;
     }
@@ -119,4 +113,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         }
     }
+
+    private void sendErrorResponse(HttpServletResponse response, HttpStatus status, String message) throws IOException {
+        response.setStatus(status.value());
+        response.setContentType("application/json");
+        response.getWriter().write("{\"status\": " + status.value() + ", \"message\": \"" + message + "\"}");
+    }
+
 }
