@@ -1,10 +1,12 @@
 package com.khata.party.service.impl;
 
+import com.khata.exceptions.ResourceAlreadyExistsException;
 import com.khata.exceptions.ResourceNotFoundException;
 import com.khata.party.dto.PartyDTO;
 import com.khata.party.entity.Party;
 import com.khata.party.repositories.PartyRepo;
 import com.khata.party.service.PartyService;
+import com.khata.utils.EmailAndPhoneUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -28,6 +30,8 @@ public class PartyServiceImpl implements PartyService {
     @Transactional
     public PartyDTO createParty(PartyDTO partyDTO) {
         Party party = modelMapper.map(partyDTO, Party.class);
+        checkEmailIfExists(partyDTO.getEmail());
+        checkPhoneNumberIfExists(partyDTO.getPhoneNumber());
         Party savedParty = partyRepo.save(party);
         log.info("Party created with name: {}", partyDTO.getName());
         return modelMapper.map(savedParty, PartyDTO.class);
@@ -37,6 +41,15 @@ public class PartyServiceImpl implements PartyService {
     @Transactional
     public PartyDTO updateParty(PartyDTO partyDTO, Integer partyId) {
         Party party = getPartyEntityById(partyId);
+
+        if (!party.getEmail().equals(partyDTO.getEmail())) {
+            checkEmailIfExists(partyDTO.getEmail());
+        }
+
+        if (!party.getPhoneNumber().equals(partyDTO.getPhoneNumber())) {
+            checkPhoneNumberIfExists(partyDTO.getPhoneNumber());
+        }
+
         party.setName(partyDTO.getName());
         party.setEmail(partyDTO.getEmail());
         party.setPartyType(partyDTO.getPartyType());
@@ -80,5 +93,23 @@ public class PartyServiceImpl implements PartyService {
         return partyRepo.findById(partyId).orElseThrow(
                 () -> new ResourceNotFoundException("Party", "id", partyId)
         );
+    }
+
+    private void checkEmailIfExists(String email) {
+        if (!EmailAndPhoneUtil.isValidEmail(email)) {throw new IllegalArgumentException("Invalid email format");}
+
+        if (partyRepo.findByEmail(email).isPresent()) {
+            log.error("Email already exists: {}", email);
+            throw new ResourceAlreadyExistsException("Email", email);
+        }
+    }
+
+    private void checkPhoneNumberIfExists(String phoneNumber){
+        if(!EmailAndPhoneUtil.isValidPhoneNumber(phoneNumber)){throw new IllegalArgumentException("Invalid phone number format");}
+
+        if(partyRepo.findByPhoneNumber(phoneNumber).isPresent()){
+            log.error("Phone number already exists: {}", phoneNumber);
+            throw new ResourceAlreadyExistsException("Phone number", phoneNumber);
+        }
     }
 }

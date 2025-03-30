@@ -1,12 +1,21 @@
 package com.khata.exceptions;
 
+
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.http.HttpStatus;
+
+@Getter
+@Setter
 public class JwtTokenException extends RuntimeException {
 
-    public JwtTokenException(){
-        super();
-    }
+    private final HttpStatus httpStatus;
+    private final int statusCode;
 
-    public JwtTokenException(String message) {
+    public JwtTokenException(HttpStatus httpStatus, String message) {
         super(message);
+        this.httpStatus = httpStatus;
+        this.statusCode = httpStatus.value();
     }
 }

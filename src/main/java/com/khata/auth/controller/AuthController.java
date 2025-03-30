@@ -30,7 +30,7 @@ public class AuthController {
     @ResponseStatus(HttpStatus.CREATED)
     public ResponseEntity<ApiResponse<UserDTO>> registerUser(@Valid @RequestBody UserDTO userDTO){
         UserDTO registerUser = this.userService.createUser(userDTO);
-        ApiResponse<UserDTO> response = new ApiResponse<>(registerUser, HttpStatus.CREATED.value(), "User Registered Sucessfully");
+        ApiResponse<UserDTO> response = new ApiResponse<>(registerUser, HttpStatus.CREATED.value(), "User Registered Successfully");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

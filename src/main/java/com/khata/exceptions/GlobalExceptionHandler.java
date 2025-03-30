@@ -1,6 +1,5 @@
 package com.khata.exceptions;
 
-import com.khata.auth.exceptions.EmailAlreadyExistsException;
 import com.khata.payload.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +24,7 @@ import java.util.Map;
  * field-specific error messages.</li>
  * <li>{@link ApiException} - Handles custom API exceptions thrown by the
  * application.</li>
- * <li>{@link EmailAlreadyExistsException} - Handles cases where the email
+ * <li>{@link ResourceAlreadyExistsException} - Handles cases where the email
  * already exists in the system.</li>
  * </ul>
  * <p>
@@ -86,18 +85,18 @@ public class GlobalExceptionHandler {
     
 
     /**
-     * Handles {@link EmailAlreadyExistsException} and returns a 400 status code
+     * Handles {@link ResourceAlreadyExistsException} and returns a 400 status code
      * with a standardized error response.
      *
      * @param ex the exception that was thrown
      * @return a {@link ResponseEntity} containing an {@link ApiResponse} with the
      *         error message and HTTP status
      */
-    @ExceptionHandler(EmailAlreadyExistsException.class)
-    public ResponseEntity<ApiResponse<Object>> handleEmailAlreadyExistsException(EmailAlreadyExistsException ex) {
+    @ExceptionHandler(ResourceAlreadyExistsException.class)
+    public ResponseEntity<ApiResponse<Object>> handleEmailAlreadyExistsException(ResourceAlreadyExistsException ex) {
         String message = ex.getMessage();
-        ApiResponse<Object> apiResponse = new ApiResponse<>(null, HttpStatus.BAD_REQUEST.value(), message);
-        return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
+        ApiResponse<Object> apiResponse = new ApiResponse<>(null, HttpStatus.CONFLICT.value(), message);
+        return new ResponseEntity<>(apiResponse, HttpStatus.CONFLICT);
     }
 
     /**
@@ -112,8 +111,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Object>> handleJwtTokenException(JwtTokenException ex) {
         String message = ex.getMessage();
         ApiResponse<Object> apiResponse = new ApiResponse<>(null, HttpStatus.UNAUTHORIZED.value(), message);
-        System.out.println("Yesma k aairaxa ta -------------------->  "+ HttpStatus.UNAUTHORIZED.value());
-        System.out.println("Message is => "+ message);
         return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
     }
 }

@@ -15,10 +15,10 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ResourceNotFoundException extends RuntimeException {
-    String resourceName;
-    String fieldName;
-    long longValue;
-    String stringValue;
+    private String resourceName;
+    private String fieldName;
+    private long longValue;
+    private String stringValue;
 
     /**
      * Constructor to create a {@link ResourceNotFoundException} with a long field value.
