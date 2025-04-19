@@ -9,7 +9,6 @@ import com.khata.mailVerification.service.MailVerificationService;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.modelmapper.ModelMapper;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -19,17 +18,15 @@ import java.time.LocalDateTime;
 @Slf4j
 @Service
 public class MailVerificationServiceImpl implements MailVerificationService {
-    
+
     private final JavaMailSender mailSender;
     private final MailVerificationRepo mailVerificationRepo;
     private final UserRepo userRepo;
-    private final ModelMapper modelMapper;
 
-    public MailVerificationServiceImpl(JavaMailSender mailSender, MailVerificationRepo mailVerificationRepo, UserRepo userRepo, ModelMapper modelMapper) {
+    public MailVerificationServiceImpl(JavaMailSender mailSender, MailVerificationRepo mailVerificationRepo, UserRepo userRepo) {
         this.mailSender = mailSender;
         this.mailVerificationRepo = mailVerificationRepo;
         this.userRepo = userRepo;
-        this.modelMapper = modelMapper;
     }
 
     @Override
