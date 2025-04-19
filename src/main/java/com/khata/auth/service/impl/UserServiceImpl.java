@@ -2,10 +2,11 @@ package com.khata.auth.service.impl;
 
 import com.khata.auth.dto.UserDTO;
 import com.khata.auth.entity.User;
-import com.khata.exceptions.ResourceAlreadyExistsException;
 import com.khata.auth.repositories.UserRepo;
 import com.khata.auth.service.UserService;
+import com.khata.exceptions.ResourceAlreadyExistsException;
 import com.khata.exceptions.ResourceNotFoundException;
+import com.khata.mailVerification.service.MailVerificationService;
 import com.khata.utils.EmailAndPhoneUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -22,11 +23,14 @@ public class UserServiceImpl implements UserService {
     private final UserRepo userRepo;
     private final ModelMapper modelMapper;
     private final PasswordEncoder encoder;
+    private final MailVerificationService mailVerificationService;
 
-    public UserServiceImpl(UserRepo userRepo, ModelMapper modelMapper, PasswordEncoder encoder) {
+
+    public UserServiceImpl(UserRepo userRepo, ModelMapper modelMapper, PasswordEncoder encoder, MailVerificationService mailVerificationService) {
         this.userRepo = userRepo;
         this.modelMapper = modelMapper;
         this.encoder = encoder;
+        this.mailVerificationService = mailVerificationService;
     }
 
     @Override
@@ -37,6 +41,7 @@ public class UserServiceImpl implements UserService {
         checkPhoneNumberIfExists(userDTO.getPhoneNumber());
         user.setPassword(encodePassword(userDTO.getPassword()));
         User savedUser = this.userRepo.save(user);
+        mailVerificationService.sendVerificationEmail(userDTO.getEmail());
         log.info("User created with email: {}", userDTO.getEmail());
         return modelMapper.map(savedUser, UserDTO.class);
     }
@@ -56,7 +61,7 @@ public class UserServiceImpl implements UserService {
 
         user.setFullName(userDTO.getFullName());
         user.setPhoneNumber(userDTO.getPhoneNumber());
-        if(userDTO.getPassword() != null && !userDTO.getPassword().isEmpty()){
+        if (userDTO.getPassword() != null && !userDTO.getPassword().isEmpty()) {
             user.setPassword(encodePassword(userDTO.getPassword()));
         }
         User updateUser = this.userRepo.save(user);
@@ -98,7 +103,7 @@ public class UserServiceImpl implements UserService {
                 () -> new ResourceNotFoundException("User", "id", userId));
     }
 
-    private String encodePassword(String rawPassword){
+    private String encodePassword(String rawPassword) {
         if (rawPassword == null || rawPassword.isEmpty()) {
             throw new IllegalArgumentException("Password cannot be null or empty");
         }
@@ -106,7 +111,9 @@ public class UserServiceImpl implements UserService {
     }
 
     private void checkEmailIfExists(String email) {
-        if (!EmailAndPhoneUtil.isValidEmail(email)) {throw new IllegalArgumentException("Invalid email format");}
+        if (!EmailAndPhoneUtil.isValidEmail(email)) {
+            throw new IllegalArgumentException("Invalid email format");
+        }
 
         if (userRepo.findByEmail(email).isPresent()) {
             log.error("Email already exists: {}", email);
@@ -114,10 +121,12 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void checkPhoneNumberIfExists(String phoneNumber){
-        if(!EmailAndPhoneUtil.isValidPhoneNumber(phoneNumber)){throw new IllegalArgumentException("Invalid phone number format");}
+    private void checkPhoneNumberIfExists(String phoneNumber) {
+        if (!EmailAndPhoneUtil.isValidPhoneNumber(phoneNumber)) {
+            throw new IllegalArgumentException("Invalid phone number format");
+        }
 
-        if(userRepo.findByPhoneNumber(phoneNumber).isPresent()){
+        if (userRepo.findByPhoneNumber(phoneNumber).isPresent()) {
             log.error("Phone number already exists: {}", phoneNumber);
             throw new ResourceAlreadyExistsException("Phone number", phoneNumber);
         }
