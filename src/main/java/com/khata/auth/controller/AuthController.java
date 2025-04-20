@@ -30,9 +30,7 @@ public class AuthController {
 
     @PostMapping("/user-login")
     public ResponseEntity<ApiResponse<JwtAuthResponse>> loginUser(@Valid @RequestBody JwtAuthRequest jwtAuthRequest) {
-
         JwtAuthResponse jwtAuthResponse = this.authService.authenticateUserAndGenerateToken(jwtAuthRequest);
-
         return ResponseEntity.ok(new ApiResponse<>(jwtAuthResponse, HttpStatus.OK.value()));
     }
 }

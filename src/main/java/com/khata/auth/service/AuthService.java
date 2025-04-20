@@ -57,6 +57,9 @@ public class AuthService {
     public JwtAuthResponse authenticateUserAndGenerateToken(JwtAuthRequest jwtAuthRequest) {
         authenticateUserCredentials(jwtAuthRequest.getUsername(), jwtAuthRequest.getPassword());
 
+        User user = findUserEntityByEmail(jwtAuthRequest.getUsername());
+        ensureUserIsVerified(user);
+
         UserDetails userDetails = loadUserDetailsByUsername(jwtAuthRequest.getUsername());
         String token = generateJwtTokenForUser(userDetails);
         UserDTO userDTO = mapUserEntityToDTO(findUserEntityByEmail(jwtAuthRequest.getUsername()));
@@ -78,6 +81,19 @@ public class AuthService {
         } catch (BadCredentialsException e) {
             log.error("Invalid authentication attempt for user {}", username);
             throw new ApiException("Invalid username or password");
+        }
+    }
+
+    /**
+     * Ensures the user account is verified before allowing further processing.
+     *
+     * @param user The user entity to check.
+     * @throws ApiException if the user's account is not verified.
+     */
+    private void ensureUserIsVerified(User user) {
+        if (!user.isVerified()) {
+            log.warn("User {} attempted to log in without verification", user.getEmail());
+            throw new ApiException("Your account is not verified. Please verify your email before logging in.");
         }
     }
 
