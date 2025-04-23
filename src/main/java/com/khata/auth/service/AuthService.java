@@ -56,15 +56,28 @@ public class AuthService {
      */
     public JwtAuthResponse authenticateUserAndGenerateToken(JwtAuthRequest jwtAuthRequest) {
         authenticateUserCredentials(jwtAuthRequest.getUsername(), jwtAuthRequest.getPassword());
-
-        User user = findUserEntityByEmail(jwtAuthRequest.getUsername());
-        ensureUserIsVerified(user);
-
         UserDetails userDetails = loadUserDetailsByUsername(jwtAuthRequest.getUsername());
         String token = generateJwtTokenForUser(userDetails);
         UserDTO userDTO = mapUserEntityToDTO(findUserEntityByEmail(jwtAuthRequest.getUsername()));
 
         return new JwtAuthResponse(token, userDTO);
+    }
+
+    public JwtAuthResponse autoLoginAfterVerification(String email) {
+        UserDetails userDetails = loadUserDetailsByUsername(email);
+        String token = generateJwtTokenForUser(userDetails);
+        User user = findUserEntityByEmail(email);
+        UserDTO userDTO = mapUserEntityToDTO(user);
+        return new JwtAuthResponse(token, userDTO);
+    }
+
+    public User findUserEntityByEmail(String email) {
+        return userRepo.findByEmail(email).orElseThrow(
+                () -> new ApiException("User not found"));
+    }
+
+    public UserDTO mapUserEntityToDTO(User user) {
+        return modelMapper.map(user, UserDTO.class);
     }
 
     /**
@@ -84,33 +97,11 @@ public class AuthService {
         }
     }
 
-    /**
-     * Ensures the user account is verified before allowing further processing.
-     *
-     * @param user The user entity to check.
-     * @throws ApiException if the user's account is not verified.
-     */
-    private void ensureUserIsVerified(User user) {
-        if (!user.isVerified()) {
-            log.warn("User {} attempted to log in without verification", user.getEmail());
-            throw new ApiException("Your account is not verified. Please verify your email before logging in.");
-        }
-    }
-
     private UserDetails loadUserDetailsByUsername(String username) {
         return userDetailsService.loadUserByUsername(username);
     }
 
     private String generateJwtTokenForUser(UserDetails userDetails) {
         return jwtTokenService.generateToken(userDetails);
-    }
-
-    private User findUserEntityByEmail(String email) {
-        return userRepo.findByEmail(email).orElseThrow(
-                () -> new ApiException("User not found"));
-    }
-
-    private UserDTO mapUserEntityToDTO(User user) {
-        return modelMapper.map(user, UserDTO.class);
     }
 }

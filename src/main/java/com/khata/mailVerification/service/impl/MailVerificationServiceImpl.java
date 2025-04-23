@@ -23,7 +23,10 @@ public class MailVerificationServiceImpl implements MailVerificationService {
     private final MailVerificationRepo mailVerificationRepo;
     private final UserRepo userRepo;
 
-    public MailVerificationServiceImpl(JavaMailSender mailSender, MailVerificationRepo mailVerificationRepo, UserRepo userRepo) {
+    public MailVerificationServiceImpl(
+            JavaMailSender mailSender,
+            MailVerificationRepo mailVerificationRepo,
+            UserRepo userRepo) {
         this.mailSender = mailSender;
         this.mailVerificationRepo = mailVerificationRepo;
         this.userRepo = userRepo;
@@ -58,6 +61,7 @@ public class MailVerificationServiceImpl implements MailVerificationService {
         user.setVerified(true);
         userRepo.save(user);
         mailVerificationRepo.delete(verification);
+
         log.info("{} has been successfully verified", email);
     }
 

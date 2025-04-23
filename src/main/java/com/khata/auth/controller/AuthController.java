@@ -1,10 +1,12 @@
 package com.khata.auth.controller;
 
 import com.khata.auth.dto.UserDTO;
+import com.khata.auth.entity.User;
 import com.khata.auth.payload.JwtAuthRequest;
 import com.khata.auth.payload.JwtAuthResponse;
 import com.khata.auth.service.AuthService;
 import com.khata.auth.service.UserService;
+import com.khata.exceptions.ApiException;
 import com.khata.payload.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -22,15 +24,22 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<ApiResponse<UserDTO>> registerUser(@Valid @RequestBody UserDTO userDTO) {
+    public ResponseEntity<ApiResponse<?>> registerUser(@Valid @RequestBody UserDTO userDTO) {
         UserDTO registerUser = this.userService.createUser(userDTO);
         ApiResponse<UserDTO> response = new ApiResponse<>(registerUser, HttpStatus.CREATED.value(), "User Registered Successfully");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/user-login")
-    public ResponseEntity<ApiResponse<JwtAuthResponse>> loginUser(@Valid @RequestBody JwtAuthRequest jwtAuthRequest) {
-        JwtAuthResponse jwtAuthResponse = this.authService.authenticateUserAndGenerateToken(jwtAuthRequest);
-        return ResponseEntity.ok(new ApiResponse<>(jwtAuthResponse, HttpStatus.OK.value()));
+    public ResponseEntity<ApiResponse<?>> loginUser(@Valid @RequestBody JwtAuthRequest jwtAuthRequest) {
+        User user = this.authService.findUserEntityByEmail(jwtAuthRequest.getUsername());
+        if(!user.isVerified()){
+            UserDTO userDTO = this.authService.mapUserEntityToDTO(user);
+            return ResponseEntity.ok(new ApiResponse<>(userDTO, HttpStatus.FORBIDDEN.value(), "Your account is not verified. Please verify your email before logging in"));
+        }else{
+            JwtAuthResponse jwtAuthResponse = this.authService.authenticateUserAndGenerateToken(jwtAuthRequest);
+            return ResponseEntity.ok(new ApiResponse<>(jwtAuthResponse, HttpStatus.OK.value()));
+        }
     }
+
 }
