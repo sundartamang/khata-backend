@@ -31,7 +31,7 @@ public class User implements UserDetails {
     @Column(nullable = false, length = 100)
     private String password;
 
-    @Column(length = 15)
+    @Column(unique = true, length = 15)
     private String phoneNumber;
 
     @Enumerated(EnumType.STRING)
@@ -39,9 +39,9 @@ public class User implements UserDetails {
     private Role role = Role.USER; // Default role
 
     @Column(nullable = false)
-    private boolean isVerified; // Email verification status
+    private boolean isVerified;
 
-    private String resetToken; // For password reset
+    private String resetToken;
 
     private String provider; // OAuth provider (facebook, google etC)
     private String providerToken; //OAuth user ID

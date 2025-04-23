@@ -4,6 +4,8 @@ import com.khata.payload.ApiResponse;
 import com.khata.product.dto.ProductDTO;
 import com.khata.product.service.ProductService;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -12,43 +14,43 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/product")
+@AllArgsConstructor
 public class ProductController {
 
     private final ProductService productService;
 
-    public ProductController(ProductService productService) {
-        this.productService = productService;
-    }
-
-    @PostMapping("/")
-    public ResponseEntity<ProductDTO> createProduct(@Valid @RequestBody ProductDTO productDTO){
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<ApiResponse<ProductDTO>> createProduct(@Valid @RequestBody ProductDTO productDTO){
         ProductDTO product = this.productService.createProduct(productDTO);
-        return new ResponseEntity<ProductDTO>(product, HttpStatus.CREATED);
+        ApiResponse<ProductDTO> response = new ApiResponse<>(product, HttpStatus.CREATED.value(), "Product Created Successfully");
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping("/list")
-    public ResponseEntity<Page<ProductDTO>> getProducts(Pageable pageable){
+    @GetMapping
+    public ResponseEntity<ApiResponse<Page<ProductDTO>>> getProducts(Pageable pageable){
         Page<ProductDTO> product = this.productService.getProducts(pageable);
-        return ResponseEntity.ok(product);
+        return ResponseEntity.ok(new ApiResponse<>(product, HttpStatus.OK.value()));
     }
 
     @PutMapping("/{productId}")
-    public ResponseEntity<ProductDTO> updateProduct(
+    public ResponseEntity<ApiResponse<ProductDTO>> updateProduct(
             @Valid @RequestBody ProductDTO productDTO,
             @PathVariable Integer productId){
         ProductDTO updatedProduct = this.productService.updateProduct(productDTO, productId);
-        return ResponseEntity.ok(updatedProduct);
+        ApiResponse<ProductDTO> response = new ApiResponse<>(updatedProduct, HttpStatus.OK.value(), "Product Updated Successfully");
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{productId}")
-    public ResponseEntity<ProductDTO> getProductDetails(@PathVariable Integer productId){
+    public ResponseEntity<ApiResponse<ProductDTO>> getProductDetails(@PathVariable Integer productId){
         ProductDTO productDTO = this.productService.getProductById(productId);
-        return ResponseEntity.ok(productDTO);
+        return ResponseEntity.ok(new ApiResponse<>(productDTO, HttpStatus.OK.value()));
     }
 
     @DeleteMapping("/{productId}")
-    public ResponseEntity<ApiResponse> deleteProduct(@PathVariable Integer productId){
+    public ResponseEntity<ApiResponse<Void>> deleteProduct(@PathVariable Integer productId){
         this.productService.deleteProduct(productId);
-        return ResponseEntity.ok(new ApiResponse("Product deleted successfully", true));
+        return ResponseEntity.ok(new ApiResponse<>(null, HttpStatus.OK.value() ,"Product Deleted Successfully"));
     }
 }

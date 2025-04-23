@@ -10,6 +10,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -24,6 +25,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public CategoryDTO createCategory(CategoryDTO categoryDTO) {
         Category category = this.modelMapper.map(categoryDTO, Category.class);
         Category savedCategory = this.categoryRepo.save(category);
@@ -32,9 +34,9 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public CategoryDTO updateCategory(CategoryDTO categoryDTO, Integer categoryId) {
-        Category category = this.categoryRepo.findById(categoryId).orElseThrow(
-                () -> new ResourceNotFoundException("Category", "id", categoryId));
+        Category category = getCategoryEntityById(categoryId);
         category.setTitle(categoryDTO.getTitle());
         Category updatedCategory = this.categoryRepo.save(category);
         log.info("Category updated with ID: {}", categoryId);
@@ -42,13 +44,14 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CategoryDTO getCategoryById(Integer categoryId) {
-        Category category = this.categoryRepo.findById(categoryId).orElseThrow(
-                () -> new ResourceNotFoundException("Category", "id", categoryId));
+        Category category = getCategoryEntityById(categoryId);
         return this.modelMapper.map(category, CategoryDTO.class);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Page<CategoryDTO> getCategories(Pageable pageable) {
         Page<Category> categories = this.categoryRepo.findAll(pageable);
         return categories.map(category -> this.modelMapper.map(category, CategoryDTO.class));
@@ -56,9 +59,14 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void deleteCategory(Integer categoryId) {
-        Category category = this.categoryRepo.findById(categoryId).orElseThrow(
-                () -> new ResourceNotFoundException("Category", "id", categoryId));
-        log.info("Category deleted with ID: {}", categoryId);
+        Category category = getCategoryEntityById(categoryId);
         this.categoryRepo.delete(category);
+        log.info("Category deleted with ID: {}", categoryId);
+    }
+
+    private Category getCategoryEntityById(Integer categoryId) {
+        return categoryRepo.findById(categoryId).orElseThrow(
+                () -> new ResourceNotFoundException("Category", "id", categoryId)
+        );
     }
 }
