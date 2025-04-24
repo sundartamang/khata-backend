@@ -44,8 +44,11 @@ public class SecurityConfig {
                 }))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/email/**").permitAll()
+                        .requestMatchers(
+                                "/api/auth/**",
+                                "/api/email/**"
+                        )
+                        .permitAll()
                         .anyRequest().authenticated()
                 )
                 .formLogin(Customizer.withDefaults())

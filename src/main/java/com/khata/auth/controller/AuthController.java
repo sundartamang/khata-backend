@@ -6,8 +6,8 @@ import com.khata.auth.payload.JwtAuthRequest;
 import com.khata.auth.payload.JwtAuthResponse;
 import com.khata.auth.service.AuthService;
 import com.khata.auth.service.UserService;
-import com.khata.exceptions.ApiException;
 import com.khata.payload.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth/")
+@Tag(name = "Auth")
 @AllArgsConstructor
 public class AuthController {
 
@@ -33,10 +34,10 @@ public class AuthController {
     @PostMapping("/user-login")
     public ResponseEntity<ApiResponse<?>> loginUser(@Valid @RequestBody JwtAuthRequest jwtAuthRequest) {
         User user = this.authService.findUserEntityByEmail(jwtAuthRequest.getUsername());
-        if(!user.isVerified()){
+        if (!user.isVerified()) {
             UserDTO userDTO = this.authService.mapUserEntityToDTO(user);
             return ResponseEntity.ok(new ApiResponse<>(userDTO, HttpStatus.FORBIDDEN.value(), "Your account is not verified. Please verify your email before logging in"));
-        }else{
+        } else {
             JwtAuthResponse jwtAuthResponse = this.authService.authenticateUserAndGenerateToken(jwtAuthRequest);
             return ResponseEntity.ok(new ApiResponse<>(jwtAuthResponse, HttpStatus.OK.value()));
         }
