@@ -3,9 +3,9 @@ package com.khata.product.controller;
 import com.khata.payload.ApiResponse;
 import com.khata.product.dto.CategoryDTO;
 import com.khata.product.service.CategoryService;
+import io.swagger.v3.oas.annotations.Hidden;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/product/category")
 @RequiredArgsConstructor
+@Hidden
 public class CategoryController {
 
     private final CategoryService categoryService;
@@ -24,7 +25,7 @@ public class CategoryController {
     public ResponseEntity<ApiResponse<CategoryDTO>> createCategory(@Valid @RequestBody CategoryDTO categoryDTO) {
         CategoryDTO category = this.categoryService.createCategory(categoryDTO);
         ApiResponse<CategoryDTO> response = new ApiResponse<>(
-            category, HttpStatus.CREATED.value(), "Category Created successfully");
+                category, HttpStatus.CREATED.value(), "Category Created successfully");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -38,7 +39,7 @@ public class CategoryController {
     public ResponseEntity<ApiResponse<CategoryDTO>> updateCategory(@Valid @RequestBody CategoryDTO categoryDTO, @PathVariable Integer categoryId) {
         CategoryDTO updatedCategory = this.categoryService.updateCategory(categoryDTO, categoryId);
         ApiResponse<CategoryDTO> response = new ApiResponse<>(
-            updatedCategory, HttpStatus.OK.value(), "Category Updated successfully");
+                updatedCategory, HttpStatus.OK.value(), "Category Updated successfully");
         return ResponseEntity.ok(response);
     }
 
@@ -51,7 +52,7 @@ public class CategoryController {
     @DeleteMapping("/{categoryId}")
     public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable Integer categoryId) {
         this.categoryService.deleteCategory(categoryId);
-        ApiResponse<Void> response = new ApiResponse<>(null, HttpStatus.OK.value(),"Category Deleted successfully");
+        ApiResponse<Void> response = new ApiResponse<>(null, HttpStatus.OK.value(), "Category Deleted successfully");
         return ResponseEntity.ok(response);
     }
 }

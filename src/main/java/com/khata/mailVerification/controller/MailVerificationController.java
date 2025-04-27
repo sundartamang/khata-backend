@@ -1,17 +1,14 @@
 package com.khata.mailVerification.controller;
 
-import com.khata.auth.dto.UserDTO;
-import com.khata.auth.entity.User;
-import com.khata.auth.payload.JwtAuthRequest;
 import com.khata.auth.payload.JwtAuthResponse;
 import com.khata.auth.service.AuthService;
 import com.khata.exceptions.ApiException;
 import com.khata.mailVerification.dto.MailVerificationDTO;
 import com.khata.mailVerification.service.MailVerificationService;
 import com.khata.payload.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/email")
+@Tag(name = "Mail Verification")
 public class MailVerificationController {
 
     private final MailVerificationService mailVerificationService;
@@ -64,7 +62,6 @@ public class MailVerificationController {
                     .body(new ApiResponse<>(null, HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to send verification email"));
         }
     }
-
 
 
 }
