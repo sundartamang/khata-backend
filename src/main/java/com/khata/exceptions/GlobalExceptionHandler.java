@@ -82,7 +82,6 @@ public class GlobalExceptionHandler {
         ApiResponse<Object> apiResponse = new ApiResponse<>(null, HttpStatus.BAD_REQUEST.value(), message);
         return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
     }
-    
 
     /**
      * Handles {@link ResourceAlreadyExistsException} and returns a 400 status code
@@ -100,17 +99,19 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Handles JWT-related exceptions (e.g., expired or malformed tokens) and returns a standardized
+     * Handles JWT-related exceptions (e.g., expired or malformed tokens) and
+     * returns a standardized
      * error response with a 401 Unauthorized status.
      *
      * @param ex the {@link JwtTokenException} that was thrown
-     * @return a {@link ResponseEntity} containing an {@link ApiResponse} with the error message
+     * @return a {@link ResponseEntity} containing an {@link ApiResponse} with the
+     *         error message
      *         and HTTP status
      */
-    @ExceptionHandler(JwtTokenException.class)
-    public ResponseEntity<ApiResponse<Object>> handleJwtTokenException(JwtTokenException ex) {
-        String message = ex.getMessage();
-        ApiResponse<Object> apiResponse = new ApiResponse<>(null, HttpStatus.UNAUTHORIZED.value(), message);
-        return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
-    }
+     @ExceptionHandler(JwtTokenException.class)
+     public ResponseEntity<ApiResponse<Object>> handleJwtTokenException(JwtTokenException ex) {
+         String message = ex.getMessage();
+         ApiResponse<Object> apiResponse = new ApiResponse<>(null, HttpStatus.UNAUTHORIZED.value(), message);
+         return new ResponseEntity<>(apiResponse, HttpStatus.BAD_REQUEST);
+     }
 }

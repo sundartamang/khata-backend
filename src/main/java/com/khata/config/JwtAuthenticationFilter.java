@@ -62,18 +62,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request, response);
 
-        } catch (ExpiredJwtException ex) {
-            log.error("JWT token has expired: {}", ex.getMessage());
-            throw new JwtTokenException(HttpStatus.UNAUTHORIZED, "JWT token has expired");
-        } catch (MalformedJwtException ex) {
-            log.error("Malformed JWT token: {}", ex.getMessage());
-            throw new JwtTokenException(HttpStatus.UNAUTHORIZED, "Malformed JWT token");
-        } catch (io.jsonwebtoken.SignatureException ex) {
-            log.error("Invalid JWT signature: {}", ex.getMessage());
-            throw new JwtTokenException(HttpStatus.UNAUTHORIZED, "Invalid JWT signature");
-        } catch (IllegalArgumentException ex) {
-            log.error("JWT token is missing or invalid: {}", ex.getMessage());
-            throw new JwtTokenException(HttpStatus.UNAUTHORIZED, "JWT token is missing or invalid");
+        } catch (ExpiredJwtException | MalformedJwtException | io.jsonwebtoken.SignatureException | IllegalArgumentException ex) {
+            log.error("JWT exception: {}", ex.getMessage());
+            handleJwtException(response, ex);
         }
     }
 
@@ -117,5 +108,38 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         } else {
             log.warn("JWT token validation failed for user: {}", username);
         }
+    }
+
+    /**
+     * Handles JWT-related exceptions by setting a 401 Unauthorized response
+     * with a JSON error message based on the exception type.
+     *
+     * @param response the HTTP response to write to
+     * @param ex the JWT-related exception
+     * @throws IOException if writing to the response fails
+     */
+    private void handleJwtException(HttpServletResponse response, Exception ex) throws IOException {
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
+        response.setContentType("application/json");
+
+        String message = "Invalid or expired JWT token";
+
+        if (ex instanceof ExpiredJwtException) {
+            message = "JWT token has expired";
+        } else if (ex instanceof MalformedJwtException) {
+            message = "Malformed JWT token";
+        } else if (ex instanceof io.jsonwebtoken.SignatureException) {
+            message = "Invalid JWT signature";
+        } else if (ex instanceof IllegalArgumentException) {
+            message = "JWT token is missing or invalid";
+        }
+
+        String jsonResponse = String.format(
+                "{\"statusCode\":%d,\"message\":\"%s\"}",
+                HttpStatus.UNAUTHORIZED.value(),
+                message
+        );
+
+        response.getWriter().write(jsonResponse);
     }
 }
