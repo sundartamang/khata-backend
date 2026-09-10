@@ -1,0 +1,11 @@
+package khata_backend.com.authentication.user.repository;
+
+import khata_backend.com.authentication.user.model.entity.Users;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+
+public interface UserRepo extends JpaRepository<Users, Integer> {
+    Optional<Users> findByEmail(String email);
+    boolean existsByEmail(String email);
+}
