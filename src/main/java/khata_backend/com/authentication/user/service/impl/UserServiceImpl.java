@@ -7,9 +7,9 @@ import khata_backend.com.authentication.user.repository.UserRepo;
 import khata_backend.com.authentication.user.service.UserService;
 import khata_backend.com.exception.DuplicateResourceException;
 import khata_backend.com.exception.ResourceNotFoundException;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,16 +25,13 @@ import java.util.stream.Collectors;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 @Transactional
 public class UserServiceImpl implements UserService {
 
-    @Autowired
-    private UserRepo userRepo;
-
-    @Autowired
-    private UserMapper userMapper;
-
-    private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    private final UserRepo userRepo;
+    private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
 
     /**
@@ -42,19 +39,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UsersDTO registerNewUser(UsersDTO userDto) {
-        // Business rule: email must be unique
-        if (userRepo.existsByEmail(userDto.getEmail())) {
-            log.warn("[SERVICE] registerNewUser — email already in use: {}", userDto.getEmail());
-            throw new DuplicateResourceException("User already exists with email: " + userDto.getEmail());
-        }
-
-        Users user = userMapper.toEntity(userDto);
-        user.setPassword(encoder.encode(userDto.getPassword()));
-
-        Users savedUser = userRepo.save(user);
-        log.info("[SERVICE] registerNewUser — user persisted with id: {} email: {}", savedUser.getId(), savedUser.getEmail());
-
-        return userMapper.toDto(savedUser);
+        return saveNewUser(userDto, "registerNewUser");
     }
 
 
@@ -63,19 +48,7 @@ public class UserServiceImpl implements UserService {
      */
     @Override
     public UsersDTO createUser(UsersDTO userDto) {
-        // Business rule: email must be unique
-        if (userRepo.existsByEmail(userDto.getEmail())) {
-            log.warn("[SERVICE] createNewUser — email already in use: {}", userDto.getEmail());
-            throw new DuplicateResourceException("User already exists with email: " + userDto.getEmail());
-        }
-
-        Users user = userMapper.toEntity(userDto);
-        user.setPassword(encoder.encode(userDto.getPassword()));
-
-        Users savedUser = userRepo.save(user);
-        log.info("[SERVICE] createUser — user persisted with id: {} email: {}", savedUser.getId(), savedUser.getEmail());
-
-        return userMapper.toDto(savedUser);
+        return saveNewUser(userDto, "createUser");
     }
 
     /**
@@ -90,7 +63,7 @@ public class UserServiceImpl implements UserService {
         }
 
         if (userDto.getPassword() != null && !userDto.getPassword().isEmpty()) {
-            user.setPassword(encoder.encode(userDto.getPassword()));
+            user.setPassword(passwordEncoder.encode(userDto.getPassword()));
         }
 
         Users updatedUser = userRepo.save(user);
@@ -157,5 +130,19 @@ public class UserServiceImpl implements UserService {
                             "User not found with ID: " + userId
                     );
                 });
+    }
+
+    private UsersDTO saveNewUser(UsersDTO userDto, String operationName) {
+        if (userRepo.existsByEmail(userDto.getEmail())) {
+            log.warn("[SERVICE] {} - email already in use", operationName);
+            throw new DuplicateResourceException("User already exists with email: " + userDto.getEmail());
+        }
+
+        Users user = userMapper.toEntity(userDto);
+        user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+
+        Users savedUser = userRepo.save(user);
+        log.info("[SERVICE] {} - user persisted with id: {}", operationName, savedUser.getId());
+        return userMapper.toDto(savedUser);
     }
 }

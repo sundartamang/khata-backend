@@ -2,7 +2,6 @@ package khata_backend.com.authentication.user.facade;
 
 import khata_backend.com.authentication.payloads.JwtAuthRequest;
 import khata_backend.com.authentication.payloads.JwtAuthResponse;
-import khata_backend.com.authentication.user.mapper.UserMapper;
 import khata_backend.com.authentication.user.model.dto.UsersDTO;
 import khata_backend.com.authentication.user.service.AuthService;
 import khata_backend.com.authentication.user.service.UserService;
@@ -12,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -34,7 +32,6 @@ public class UserFacade {
 
     private final UserService userService;
     private final AuthService authService;
-    private final UserMapper userMapper;
 
     // -------------------------------------------------------------------------
     // Register
@@ -49,13 +46,11 @@ public class UserFacade {
      * @param usersDTO the registration payload
      * @return standardized response containing the saved user DTO
      */
-    @Transactional
     public BaseResponse<UsersDTO> registerNewUser(UsersDTO usersDTO) {
-        log.info("[FACADE] registerNewUser — use-case started for email: {}", usersDTO.getEmail());
+        requireUserPayload(usersDTO);
 
         UsersDTO saved = userService.registerNewUser(usersDTO);
 
-        log.info("[FACADE] registerNewUser — use-case completed successfully for email: {}", saved.getEmail());
         return BaseResponse.<UsersDTO>builder()
                 .code(HttpStatus.CREATED.value())
                 .message("User registered successfully")
@@ -74,16 +69,13 @@ public class UserFacade {
      * @return standardized response containing the JWT and user info
      */
     public BaseResponse<JwtAuthResponse> loginUser(JwtAuthRequest request) {
-        log.info("[FACADE] loginUser — use-case started for username: {}", request.getUsername());
-
-        if (request.getUsername() == null || request.getPassword() == null) {
+        if (request == null || request.getUsername() == null || request.getPassword() == null) {
             log.warn("[FACADE] loginUser — missing credentials");
             throw new InvalidDataException("Username and password are required");
         }
 
         JwtAuthResponse response = authService.authenticateUser(request);
 
-        log.info("[FACADE] loginUser — use-case completed successfully for username: {}", request.getUsername());
         return BaseResponse.<JwtAuthResponse>builder()
                 .code(HttpStatus.OK.value())
                 .message("Login successful")
@@ -101,13 +93,11 @@ public class UserFacade {
      * @param usersDTO the user payload
      * @return standardized response containing the created user DTO
      */
-    @Transactional
     public BaseResponse<UsersDTO> createUser(UsersDTO usersDTO) {
-        log.info("[FACADE] createUser — use-case started for email: {}", usersDTO.getEmail());
+        requireUserPayload(usersDTO);
 
         UsersDTO created = userService.createUser(usersDTO);
 
-        log.info("[FACADE] createUser — use-case completed successfully for email: {}", created.getEmail());
         return BaseResponse.<UsersDTO>builder()
                 .code(HttpStatus.CREATED.value())
                 .message("User created successfully")
@@ -126,10 +116,7 @@ public class UserFacade {
      * @param userId   the ID of the user to update
      * @return standardized response containing the updated user DTO
      */
-    @Transactional
     public BaseResponse<UsersDTO> updateUser(UsersDTO usersDTO, Integer userId) {
-        log.info("[FACADE] updateUser — use-case started for userId: {}", userId);
-
         if (userId == null || userId <= 0) {
             log.warn("[FACADE] updateUser — invalid userId: {}", userId);
             throw new InvalidDataException("User ID must be a positive integer");
@@ -138,11 +125,8 @@ public class UserFacade {
             log.warn("[FACADE] updateUser — user payload is null for userId: {}", userId);
             throw new InvalidDataException("User data cannot be null");
         }
-        log.debug("[FACADE] updateUser — input validated for userId: {}", userId);
-
         UsersDTO updated = userService.updateUser(usersDTO, userId);
 
-        log.info("[FACADE] updateUser — use-case completed successfully for userId: {}", userId);
         return BaseResponse.<UsersDTO>builder()
                 .code(HttpStatus.OK.value())
                 .message("User updated successfully")
@@ -210,23 +194,23 @@ public class UserFacade {
      * @param userId the ID of the user to delete
      * @return standardized response confirming deletion
      */
-    @Transactional
     public BaseResponse<Void> deleteUser(Integer userId) {
-        log.info("[FACADE] deleteUser — use-case started for userId: {}", userId);
-
         if (userId == null || userId <= 0) {
             log.warn("[FACADE] deleteUser — invalid userId: {}", userId);
             throw new InvalidDataException("User ID must be a positive integer");
         }
-        log.debug("[FACADE] deleteUser — input validated for userId: {}", userId);
-
         userService.deleteUser(userId);
 
-        log.info("[FACADE] deleteUser — use-case completed successfully for userId: {}", userId);
         return BaseResponse.<Void>builder()
                 .code(HttpStatus.OK.value())
                 .message("User deleted successfully")
                 .build();
+    }
+
+    private void requireUserPayload(UsersDTO usersDTO) {
+        if (usersDTO == null) {
+            throw new InvalidDataException("User data cannot be null");
+        }
     }
 
 }

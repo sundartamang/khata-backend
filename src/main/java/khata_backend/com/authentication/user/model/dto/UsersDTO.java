@@ -21,7 +21,7 @@ public class UsersDTO {
     @NotBlank(message = "Email can not be blank")
     private String email;
     @NotBlank(message = "Password can not be blank")
-    @Size(min = 4, max = 13, message = "Password must be min of 3 characters and max of 13 characters !")
+    @Size(min = 8, max = 72, message = "Password must be between 8 and 72 characters")
     private String password;
 
     @JsonIgnore
