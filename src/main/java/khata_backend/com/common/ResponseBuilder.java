@@ -26,18 +26,4 @@ public final class ResponseBuilder {
                 .body(response);
     }
 
-    /**
-     * Builds a ResponseEntity from an ErrorResponse.
-     *
-     * @param response the error response
-     * @param <T> type of the error data
-     * @return ResponseEntity containing the error response
-     */
-    public static <T> ResponseEntity<ErrorResponse<T>> buildError(
-            ErrorResponse<T> response
-    ) {
-        return ResponseEntity
-                .status(response.getCode())
-                .body(response);
-    }
 }
